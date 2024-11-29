@@ -1,6 +1,6 @@
 # TL;DR
 
-This repo contains the Platform Service (PS) and community maintained version of PostgreSQL managed by Patroni for High Availability (HA).  The image is available from Artifactory.
+This repo contains the ~Platform Service (PS) and community~ CHEFS maintained version of PostgreSQL managed by Patroni for High Availability (HA).  The image is available from Artifactory.
 
 You will find a sample of how to deploy the image [here](./samples/README.md).
 
