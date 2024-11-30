@@ -1,5 +1,5 @@
-ARG PGVERSION=12.4
-FROM postgres:$PGVERSION
+ARG postgresv=12.4
+FROM postgres:$postgresv
 
 LABEL Alexander Kukushkin <alexander.kukushkin@zalando.de>
 
