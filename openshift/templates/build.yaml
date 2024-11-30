@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 ---
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
   name: patroni
@@ -27,14 +27,15 @@ labels:
 parameters:
   - name: NAME
     value: "patroni-postgres"
-  - name: OUT_VERSION
-    description: Ouput version
-    value: "12.4-latest"
   - name: GIT_URI
-    value: "https://github.com/bcgov/patroni-postgres-container.git"
+    value: "https://github.com/bcgov/patroni-postgres-container-chefs.git"
   - name: GIT_REF
-    value: "master"
+    value: "main"
+  - name: PATRONI_VERSION
+    description: The version of Patroni to be used in the build
+    value: "1.6.5"
   - name: PG_VERSION
+    description: The version of PostgreSQL to be used in the build
     value: "12.4"
 objects:
   # Postgres ImageStream is created if it doesn't already exist
@@ -54,7 +55,7 @@ objects:
     tag:
       from:
         kind: DockerImage
-        name: registry.hub.docker.com/library/postgres:${PG_VERSION}
+        name: artifacts.developer.gov.bc.ca/docker-remote/library/postgres:${PG_VERSION}
       importPolicy:
         scheduled: true
       name: "${PG_VERSION}"
@@ -70,12 +71,12 @@ objects:
   - apiVersion: v1
     kind: BuildConfig
     metadata:
-      name: ${NAME}
+      name: ${NAME}-${PATRONI_VERSION}-${PG_VERSION}
     spec:
       output:
         to:
           kind: ImageStreamTag
-          name: "${NAME}:${OUT_VERSION}"
+          name: "${NAME}:${PATRONI_VERSION}-${PG_VERSION}-latest"
       source:
         contextDir: /
         git:
@@ -84,11 +85,14 @@ objects:
         type: Git
       strategy:
         dockerStrategy:
-          pullSecret:
-            name: dockerhub-creds 
+          buildArgs:
+            - name: "patroniv"
+              value: "${PATRONI_VERSION}"
+            - name: "postgresv"
+              value: "${PG_VERSION}"
           from:
             kind: DockerImage
-            name: postgres:12.4
+            name: postgres:${PG_VERSION}
         type: Docker
       triggers:
         - type: ConfigChange

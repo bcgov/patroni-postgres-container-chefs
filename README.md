@@ -1,34 +1,11 @@
-# TL;DR
-
-This repo contains the ~Platform Service (PS) and community~ CHEFS maintained version of PostgreSQL managed by Patroni for High Availability (HA).  ~The image is available from Artifactory~.
-
-You will find a sample of how to deploy the image [here](./samples/README.md).
-
-# Image Management
-
-This image is based on PostgreSQL v12.4.  Due to this being an old version of both Patroni and Postgres, we no longer automatically rebuild it to pick up software updates, because the Dockerfile no longer builds, due to software version changes.  We are planning on providing updated information soon.
-
-## Tags
-
-The stable tag for this image is `2.0.1-12.4-latest`.
-
-See the [release notes](./RELEASE.md) for more information and any other unique tags. 
-
-## Usage
-
-Below is a sample of how you might reference this image from a `StatefulSet` deployment manifest. 
-
-```yaml
-  image: artifacts.developer.gov.bc.ca/bcgov-docker-local/patroni-postgres:2.0.1-12.4-latest
-```
-
-Find a sample StatefulSet deployment [here](./samples/README.md).
+This repo contains the CHEFS-maintained version of PostgreSQL managed by Patroni for High Availability (HA).
 
 # Build
 
-This image is built as per the [workflow](.github/workflows/image.yaml) and the OpenShift [templates](./openshift/templates).
+This image is built as per the OpenShift [templates](./openshift).
 
 ## Distribution
+
 This is the old section that describes copying the image to your local namespace.
 
 Run RBAC to create an SA and bind it to, this is done on a lab or build cluster:
