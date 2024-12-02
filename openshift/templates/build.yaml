@@ -13,84 +13,89 @@
 # limitations under the License.
 #
 ---
-apiVersion: v1
-kind: Template
-metadata:
-  name: patroni
-labels:
-  app: ${NAME}
-  phase: build
-  app.kubernetes.io/component: database
-  app.kubernetes.io/name: patroni
-  app.kubernetes.io/managed-by: template
-  app.kubernetes.io/version: "${PG_VERSION}"
-parameters:
-  - name: NAME
-    value: "patroni-postgres"
-  - name: OUT_VERSION
-    description: Ouput version
-    value: "12.4-latest"
-  - name: GIT_URI
-    value: "https://github.com/bcgov/patroni-postgres-container.git"
-  - name: GIT_REF
-    value: "master"
-  - name: PG_VERSION
-    value: "12.4"
-objects:
-  # Postgres ImageStream is created if it doesn't already exist
-  - apiVersion: image.openshift.io/v1
-    kind: ImageStream
-    metadata:
-      name: postgres
-    spec:
+  apiVersion: template.openshift.io/v1
+  kind: Template
+  metadata:
+    name: patroni
+  labels:
+    app: ${NAME}
+    phase: build
+    app.kubernetes.io/component: database
+    app.kubernetes.io/name: patroni
+    app.kubernetes.io/managed-by: template
+    app.kubernetes.io/version: "${PG_VERSION}"
+  parameters:
+    - name: NAME
+      value: "patroni-postgres"
+    - name: GIT_URI
+      value: "https://github.com/bcgov/patroni-postgres-container-chefs.git"
+    - name: GIT_REF
+      value: "main"
+    - name: PATRONI_VERSION
+      description: The version of Patroni to be used in the build
+      value: "1.6.5"
+    - name: PG_VERSION
+      description: The version of PostgreSQL to be used in the build
+      value: "12.4"
+  objects:
+    # Postgres ImageStream is created if it doesn't already exist
+    - apiVersion: image.openshift.io/v1
+      kind: ImageStream
+      metadata:
+        name: postgres
+      spec:
+        lookupPolicy:
+          local: false
+    - apiVersion: v1
+      kind: ImageStreamTag
       lookupPolicy:
         local: false
-  - apiVersion: v1
-    kind: ImageStreamTag
-    lookupPolicy:
-      local: false
-    metadata:
-      name: postgres:${PG_VERSION}
-    tag:
-      from:
-        kind: DockerImage
-        name: registry.hub.docker.com/library/postgres:${PG_VERSION}
-      importPolicy:
-        scheduled: true
-      name: "${PG_VERSION}"
-      referencePolicy:
-        type: Source
-  - apiVersion: v1
-    kind: ImageStream
-    metadata:
-      name: ${NAME}
-    spec:
-      lookupPolicy:
-        local: false
-  - apiVersion: v1
-    kind: BuildConfig
-    metadata:
-      name: ${NAME}
-    spec:
-      output:
-        to:
-          kind: ImageStreamTag
-          name: "${NAME}:${OUT_VERSION}"
-      source:
-        contextDir: /
-        git:
-          ref: ${GIT_REF}
-          uri: ${GIT_URI}
-        type: Git
-      strategy:
-        dockerStrategy:
-          pullSecret:
-            name: dockerhub-creds 
-          from:
-            kind: DockerImage
-            name: postgres:12.4
-        type: Docker
-      triggers:
-        - type: ConfigChange
-        - imageChange: {}
-          type: ImageChange
+      metadata:
+        name: postgres:${PG_VERSION}
+      tag:
+        from:
+          kind: DockerImage
+          name: artifacts.developer.gov.bc.ca/docker-remote/library/postgres:${PG_VERSION}
+        importPolicy:
+          scheduled: true
+        name: "${PG_VERSION}"
+        referencePolicy:
+          type: Source
+    - apiVersion: v1
+      kind: ImageStream
+      metadata:
+        name: ${NAME}
+      spec:
+        lookupPolicy:
+          local: false
+    - apiVersion: v1
+      kind: BuildConfig
+      metadata:
+        name: ${NAME}-${PATRONI_VERSION}-${PG_VERSION}
+      spec:
+        output:
+          to:
+            kind: ImageStreamTag
+            name: "${NAME}:${PATRONI_VERSION}-${PG_VERSION}-latest"
+        source:
+          contextDir: /
+          git:
+            ref: ${GIT_REF}
+            uri: ${GIT_URI}
+          type: Git
+        strategy:
+          dockerStrategy:
+            buildArgs:
+              - name: "patroniv"
+                value: "${PATRONI_VERSION}"
+              - name: "postgresv"
+                value: "${PG_VERSION}"
+            from:
+              kind: DockerImage
+              name: postgres:${PG_VERSION}
+          type: Docker
+        triggers:
+          - type: ConfigChange
+          - imageChange: {}
+            type: ImageChange
+  
