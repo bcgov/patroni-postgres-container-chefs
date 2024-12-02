@@ -21,8 +21,8 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get install -y postgresql-common libevent-2.1 libevent-pthreads-2.1 brotli libbrotli1 python3.6 python3-psycopg2 \
     && echo 'Make sure we have a en_US.UTF-8 locale available' \
     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 \
-    && pip3 --isolated --no-cache-dir install psycopg2-binary==2.8.6 six psutil \
-    && pip3 --isolated --no-cache-dir install "patroni[kubernetes]==${PATRONI_VERSION}" \
+    && pip3 --isolated --no-cache-dir install --break-system-packages psycopg2-binary==2.9.10 six psutil \
+    && pip3 --isolated --no-cache-dir install --break-system-packages "patroni[kubernetes]==${PATRONI_VERSION}" \
     && PGHOME=/home/postgres \
     && mkdir -p $PGHOME \
     && sed -i "s|/var/lib/postgresql.*|$PGHOME:/bin/bash|" /etc/passwd \
